@@ -82,7 +82,7 @@ export default function CandidatePage({ params }: { params: Promise<{ id: string
       <div className="page-header">
         <div className="label">주식회사 엔츠 · 면접 일정 조율</div>
         <h1>{session.jobTitle} 면접</h1>
-        <p>{session.candidateName}님, 가능한 시간을 모두 선택해주세요</p>
+        <p>{session.candidateName}님, 가능한 일정을 선택 부탁드립니다</p>
       </div>
 
       <div className="card">
