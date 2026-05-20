@@ -1,4 +1,6 @@
-import { kv } from '@vercel/kv'
+import { Redis } from '@upstash/redis'
+
+const redis = Redis.fromEnv()
 
 export type Slot = { day: string; time: string }
 
@@ -17,28 +19,30 @@ export type Response = {
   submittedAt: string
 }
 
+const EX = 60 * 60 * 24 * 30
+
 export async function createSession(session: Session) {
-  await kv.set(`session:${session.id}`, JSON.stringify(session), { ex: 60 * 60 * 24 * 30 })
+  await redis.set(`session:${session.id}`, JSON.stringify(session), { ex: EX })
 }
 
 export async function getSession(id: string): Promise<Session | null> {
-  const raw = await kv.get<string>(`session:${id}`)
+  const raw = await redis.get<string>(`session:${id}`)
   if (!raw) return null
   return typeof raw === 'string' ? JSON.parse(raw) : raw
 }
 
 export async function saveResponse(sessionId: string, response: Response) {
   const key = `responses:${sessionId}`
-  const existing = await kv.get<string>(key)
+  const existing = await redis.get<string>(key)
   const list: Response[] = existing
     ? typeof existing === 'string' ? JSON.parse(existing) : existing
     : []
   list.push(response)
-  await kv.set(key, JSON.stringify(list), { ex: 60 * 60 * 24 * 30 })
+  await redis.set(key, JSON.stringify(list), { ex: EX })
 }
 
 export async function getResponses(sessionId: string): Promise<Response[]> {
-  const raw = await kv.get<string>(`responses:${sessionId}`)
+  const raw = await redis.get<string>(`responses:${sessionId}`)
   if (!raw) return []
   return typeof raw === 'string' ? JSON.parse(raw) : raw
 }
